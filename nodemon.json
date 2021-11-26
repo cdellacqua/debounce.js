@@ -1,0 +1,7 @@
+{
+	"watch": ["src"],
+	"ext": "ts",
+	"stdin": false,
+	"exec": "cross-env NODE_OPTIONS='--unhandled-rejections=strict --experimental-specifier-resolution=node --loader=ts-node/esm' ts-node src/node.ts",
+	"signal": "SIGTERM"
+}
