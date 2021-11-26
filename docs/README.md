@@ -26,7 +26,7 @@
 
 #### Defined in
 
-index.ts:8
+[index.ts:8](https://github.com/cdellacqua/debounce.js/blob/main/src/lib/index.ts#L8)
 
 ## Functions
 
@@ -58,4 +58,4 @@ a debounced function that takes the same parameters of the original
 
 #### Defined in
 
-index.ts:17
+[index.ts:17](https://github.com/cdellacqua/debounce.js/blob/main/src/lib/index.ts#L17)

@@ -9,6 +9,8 @@
 ## Highlights
 
 ```js
+import {debounce} from '@cdellacqua/debounce';
+
 // It uses requestAnimationFrame by default
 const debounced = debounce(() => {
 	console.log(`Debounced with requestAnimationFrame: ${window.innerWidth}px x ${window.innerHeight}px`);
