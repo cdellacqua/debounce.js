@@ -2,7 +2,7 @@
 	"name": "@cdellacqua/debounce",
 	"camelCaseName": "debounce",
 	"description": "Debounce a function with requestAnimationFrame or a custom interval",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"type": "module",
 	"types": "dist/index.d.ts",
 	"main": "dist/index.cjs",
