@@ -37,4 +37,19 @@ const debounced = debounce(() => {
 debounced.flush();
 // ..or...
 debounced.cancel();
+
+
+// It exposes a state property and a state$ store containing the 'idle' or 'debouncing'
+const debounced = debounce(() => {
+	console.log(`Debounced 1 second: ${window.innerWidth}px x ${window.innerHeight}px`);
+}, 1000, true);
+
+console.log(debounced.state); // 'idle'
+debounced();
+console.log(debounced.state); // 'debouncing'
+// ...after 1000ms
+debounced.state$.subscribe(console.log); // immediately prints 'idle'
+debounced(); // triggers the subscription, printing 'debouncing'
+// ...after 1000ms
+// triggers the subscription, printing 'idle'
 ```

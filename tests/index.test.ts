@@ -242,4 +242,20 @@ describe('debounce', () => {
 		await new Promise<void>((res) => setTimeout(res, 11));
 		expect(callCount).to.equal(1);
 	});
+	it('checks the state property', async () => {
+		const debounced = debounce(() => undefined, 10);
+		expect(debounced.state).to.eq('idle');
+		debounced();
+		expect(debounced.state).to.eq('debouncing');
+		await new Promise<void>((res) => setTimeout(res, 11));
+		expect(debounced.state).to.eq('idle');
+	});
+	it('checks the state property with requestAnimationFrame', async () => {
+		const debounced = debounce(() => undefined, 'animationFrame');
+		expect(debounced.state).to.eq('idle');
+		debounced();
+		expect(debounced.state).to.eq('debouncing');
+		await new Promise<void>((res) => setTimeout(res, 1000 / 60 + 10));
+		expect(debounced.state).to.eq('idle');
+	});
 });

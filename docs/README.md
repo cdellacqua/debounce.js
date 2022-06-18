@@ -4,19 +4,30 @@
 
 ## Table of contents
 
-### Type aliases
+### Type Aliases
 
+- [DebounceState](README.md#debouncestate)
 - [Debounced](README.md#debounced)
 
 ### Functions
 
 - [debounce](README.md#debounce)
 
-## Type aliases
+## Type Aliases
+
+### DebounceState
+
+Ƭ **DebounceState**: ``"idle"`` \| ``"debouncing"``
+
+#### Defined in
+
+[index.ts:10](https://github.com/cdellacqua/debounce.js/blob/main/src/lib/index.ts#L10)
+
+___
 
 ### Debounced
 
-Ƭ **Debounced**<`T`\>: `T` & { `cancel`: () => `void` ; `flush`: () => `void`  }
+Ƭ **Debounced**<`T`\>: `T` & { `state$`: `ReadonlyStore`<[`DebounceState`](README.md#debouncestate)\> ; `state`:  ; `cancel`: () => `void` ; `flush`: () => `void`  }
 
 #### Type parameters
 
@@ -26,7 +37,7 @@
 
 #### Defined in
 
-[index.ts:8](https://github.com/cdellacqua/debounce.js/blob/main/src/lib/index.ts#L8)
+[index.ts:11](https://github.com/cdellacqua/debounce.js/blob/main/src/lib/index.ts#L11)
 
 ## Functions
 
@@ -58,4 +69,4 @@ a debounced function that takes the same parameters of the original
 
 #### Defined in
 
-[index.ts:17](https://github.com/cdellacqua/debounce.js/blob/main/src/lib/index.ts#L17)
+[index.ts:20](https://github.com/cdellacqua/debounce.js/blob/main/src/lib/index.ts#L20)

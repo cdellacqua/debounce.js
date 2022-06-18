@@ -1,3 +1,5 @@
+import {makeDerivedStore, makeStore, ReadonlyStore, Store} from 'universal-stores';
+
 /* eslint @typescript-eslint/no-explicit-any: ["off"] */
 const unifiedSetTimeout = (fn: () => void, ms: number) => setTimeout(fn, ms) as unknown;
 const unifiedClearTimeout = (id: unknown) => clearTimeout(id as ReturnType<typeof setTimeout>);
@@ -5,7 +7,8 @@ const unifiedClearTimeout = (id: unknown) => clearTimeout(id as ReturnType<typeo
 const raf = typeof requestAnimationFrame === 'undefined' ? (fn: () => unknown) => unifiedSetTimeout(fn, 1000 / 60) : (fn: () => unknown) => requestAnimationFrame(fn) as unknown;
 const cancelRaf = typeof cancelAnimationFrame === 'undefined' ? unifiedClearTimeout : (id: unknown) => cancelAnimationFrame(id as ReturnType<typeof requestAnimationFrame>);
 
-export type Debounced<T> = T & {cancel: () => void; flush: () => void};
+export type DebounceState = 'idle' | 'debouncing';
+export type Debounced<T> = T & {cancel(): void; flush(): void; get state(): DebounceState; state$: ReadonlyStore<DebounceState>};
 
 /**
  * Debounce a function with using the given time interval
@@ -18,22 +21,25 @@ export function debounce<T extends (...args: any[]) => any>(fn: T, ms: number | 
 	const defer = ms === 'animationFrame' ? (fn: () => unknown) => raf(fn) : (fn: () => unknown) => setTimeout(fn, ms) as unknown;
 	const cancelDeferred = ms === 'animationFrame' ? cancelRaf : unifiedClearTimeout;
 
-	let pending: {
+	type PendingItem = {
 		id: ReturnType<typeof defer>;
 		wrappedCall: () => void;
-	} | null = null;
+	};
+	const pending$: Store<PendingItem | null> = makeStore(null);
+	const state$ = makeDerivedStore<PendingItem | null, DebounceState>(pending$, (pending) => (pending === null ? 'idle' : 'debouncing'));
 
 	const scheduleNext = <TFn extends (...args: any[]) => any>(scheduledFn: TFn, ...args: Parameters<TFn>) => {
 		const wrappedCall = () => {
 			scheduledFn(...args);
-			pending = null;
+			pending$.set(null);
 		};
-		pending = {wrappedCall, id: defer(wrappedCall)};
+		pending$.set({wrappedCall, id: defer(wrappedCall)});
 	};
 	const cancelScheduled = () => {
+		const pending = pending$.value;
 		if (pending) {
 			cancelDeferred(pending.id);
-			pending = null;
+			pending$.set(null);
 		}
 	};
 
@@ -43,26 +49,32 @@ export function debounce<T extends (...args: any[]) => any>(fn: T, ms: number | 
 				scheduleNext(fn, ...args);
 		  }
 		: function (...args: Parameters<T>) {
-				if (pending === null) {
+				if (pending$.value === null) {
 					fn(...args);
 				} else {
 					cancelScheduled();
 				}
 				scheduleNext(() => {
-					pending = null;
+					pending$.set(null);
 				});
 		  };
 	(debounced as Debounced<T>).cancel = () => {
 		cancelScheduled();
 	};
 	(debounced as Debounced<T>).flush = () => {
-		if (pending !== null) {
-			const pendingCall = pending.wrappedCall;
+		if (pending$.value !== null) {
+			const pendingCall = pending$.value.wrappedCall;
 			cancelScheduled();
 			if (!leading) {
 				pendingCall();
 			}
 		}
 	};
+	(debounced as Debounced<T>).state$ = state$;
+	Object.defineProperty(debounced, 'state', {
+		get() {
+			return state$.value;
+		},
+	});
 	return debounced as Debounced<T>;
 }
