@@ -1,6 +1,5 @@
 import {makeDerivedStore, makeStore, ReadonlyStore, Store} from 'universal-stores';
 
-/* eslint @typescript-eslint/no-explicit-any: ["off"] */
 const unifiedSetTimeout = (fn: () => void, ms: number) => setTimeout(fn, ms) as unknown;
 const unifiedClearTimeout = (id: unknown) => clearTimeout(id as ReturnType<typeof setTimeout>);
 
@@ -8,7 +7,7 @@ const raf = typeof requestAnimationFrame === 'undefined' ? (fn: () => unknown) =
 const cancelRaf = typeof cancelAnimationFrame === 'undefined' ? unifiedClearTimeout : (id: unknown) => cancelAnimationFrame(id as ReturnType<typeof requestAnimationFrame>);
 
 export type DebounceState = 'idle' | 'debouncing';
-export type Debounced<T> = T & {cancel(): void; flush(): void; get state(): DebounceState; state$: ReadonlyStore<DebounceState>};
+export type Debounced<TArgs extends unknown[]> = ((...args: TArgs) => void) & {cancel(): void; flush(): void; state$: ReadonlyStore<DebounceState>};
 
 /**
  * Debounce a function with using the given time interval
@@ -17,7 +16,7 @@ export type Debounced<T> = T & {cancel(): void; flush(): void; get state(): Debo
  * @param leading (default: false) if false the function call is postponed at the end of the interval, otherwise the function is called before debouncing
  * @returns a debounced function that takes the same parameters of the original
  */
-export function debounce<T extends (...args: any[]) => any>(fn: T, ms: number | 'animationFrame' = 'animationFrame', leading = false): Debounced<T> {
+export function debounce<TArgs extends unknown[]>(fn: (...args: TArgs) => void, ms: number | 'animationFrame' = 'animationFrame', leading = false): Debounced<TArgs> {
 	const defer = ms === 'animationFrame' ? (fn: () => unknown) => raf(fn) : (fn: () => unknown) => setTimeout(fn, ms) as unknown;
 	const cancelDeferred = ms === 'animationFrame' ? cancelRaf : unifiedClearTimeout;
 
@@ -28,7 +27,7 @@ export function debounce<T extends (...args: any[]) => any>(fn: T, ms: number | 
 	const pending$: Store<PendingItem | null> = makeStore(null);
 	const state$ = makeDerivedStore<PendingItem | null, DebounceState>(pending$, (pending) => (pending === null ? 'idle' : 'debouncing'));
 
-	const scheduleNext = <TFn extends (...args: any[]) => any>(scheduledFn: TFn, ...args: Parameters<TFn>) => {
+	const scheduleNext = <TScheduledArgs extends unknown[]>(scheduledFn: (...args: TScheduledArgs) => void, ...args: TScheduledArgs) => {
 		const wrappedCall = () => {
 			scheduledFn(...args);
 			pending$.set(null);
@@ -36,7 +35,7 @@ export function debounce<T extends (...args: any[]) => any>(fn: T, ms: number | 
 		pending$.set({wrappedCall, id: defer(wrappedCall)});
 	};
 	const cancelScheduled = () => {
-		const pending = pending$.value;
+		const pending = pending$.content();
 		if (pending) {
 			cancelDeferred(pending.id);
 			pending$.set(null);
@@ -44,12 +43,12 @@ export function debounce<T extends (...args: any[]) => any>(fn: T, ms: number | 
 	};
 
 	const debounced = !leading
-		? function (...args: Parameters<T>) {
+		? function (...args: TArgs) {
 				cancelScheduled();
 				scheduleNext(fn, ...args);
 		  }
-		: function (...args: Parameters<T>) {
-				if (pending$.value === null) {
+		: function (...args: TArgs) {
+				if (pending$.content() === null) {
 					fn(...args);
 				} else {
 					cancelScheduled();
@@ -58,23 +57,20 @@ export function debounce<T extends (...args: any[]) => any>(fn: T, ms: number | 
 					pending$.set(null);
 				});
 		  };
-	(debounced as Debounced<T>).cancel = () => {
+	(debounced as Debounced<TArgs>).cancel = () => {
 		cancelScheduled();
 	};
-	(debounced as Debounced<T>).flush = () => {
-		if (pending$.value !== null) {
-			const pendingCall = pending$.value.wrappedCall;
+	(debounced as Debounced<TArgs>).flush = () => {
+		const pending = pending$.content();
+		if (pending !== null) {
+			const pendingCall = pending.wrappedCall;
 			cancelScheduled();
 			if (!leading) {
 				pendingCall();
 			}
 		}
 	};
-	(debounced as Debounced<T>).state$ = state$;
-	Object.defineProperty(debounced, 'state', {
-		get() {
-			return state$.value;
-		},
-	});
-	return debounced as Debounced<T>;
+	(debounced as Debounced<TArgs>).state$ = state$;
+
+	return debounced as Debounced<TArgs>;
 }
