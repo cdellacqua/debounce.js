@@ -1,6 +1,6 @@
 import {makeDerivedStore, makeStore, ReadonlyStore, Store} from 'universal-stores';
 
-export * from 'universal-stores';
+export type {Subscriber, Unsubscribe, ReadonlyStore} from 'universal-stores';
 
 const unifiedSetTimeout = (fn: () => void, ms: number) => setTimeout(fn, ms) as unknown;
 const unifiedClearTimeout = (id: unknown) => clearTimeout(id as ReturnType<typeof setTimeout>);
