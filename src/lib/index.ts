@@ -19,7 +19,7 @@ export type Debounced<TArgs extends unknown[]> = ((...args: TArgs) => void) & {c
  * @returns a debounced function that takes the same parameters of the original
  */
 export function debounce<TArgs extends unknown[]>(fn: (...args: TArgs) => void, ms: number | 'animationFrame' = 'animationFrame', leading = false): Debounced<TArgs> {
-	const defer = ms === 'animationFrame' ? (fn: () => unknown) => raf(fn) : (fn: () => unknown) => setTimeout(fn, ms) as unknown;
+	const defer = ms === 'animationFrame' ? (callback: () => unknown) => raf(callback) : (callback: () => unknown) => setTimeout(callback, ms) as unknown;
 	const cancelDeferred = ms === 'animationFrame' ? cancelRaf : unifiedClearTimeout;
 
 	type PendingItem = {

@@ -1,4 +1,4 @@
-import {debounce} from './lib';
+import {debounce} from './lib/index.js';
 
 let keyStrokes = 0;
 const debouncedHandler = debounce(() => {

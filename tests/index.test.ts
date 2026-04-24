@@ -1,5 +1,4 @@
-import {expect} from 'chai';
-import {debounce} from '../src/lib/index';
+import {debounce} from '../src/lib/index.js';
 
 describe('debounce', () => {
 	it('debounces', async () => {

@@ -1,13 +1,13 @@
-import {debounce} from './lib';
+import {debounce} from './lib/index.js';
 
 const size1secRef = document.createElement('code');
 const sizeAnimFrameRef = document.createElement('code');
 const sizeRawRef = document.createElement('code');
 
 function div(content: HTMLElement) {
-	const div = document.createElement('div');
-	div.appendChild(content);
-	return div;
+	const container = document.createElement('div');
+	container.appendChild(content);
+	return container;
 }
 
 document.body.appendChild(div(sizeRawRef));
